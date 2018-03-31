@@ -4,6 +4,19 @@
 
 using namespace std;
 
+struct move {
+  int x;
+  int y;
+};
+
+struct element {
+  struct move *next;
+  struct move *prev;
+  struct move mov;
+}
+
+struct
+
 void initialize(char **, int);
 void destroy(char **, int);
 void *calloc(size_t, size_t);
@@ -18,6 +31,12 @@ void do_the_rooks(char **tab, int N) {
     for (int j = 0; j < N; j++)
       rookies[i][j] = tab[i][j] == '.' || tab[i][j] == '+' ? tab[i][j] : tab[i][j] == 'o' ? '+' : '.';
 
+  for (int i = 0; i < N; i++)
+    for (int j = 0; j < N; j++)
+      if (rookies[i][j] == '+') {
+        for (int i = 0; i < N; i++)
+          for (int j = 0; j < N; j++)
+      }
   print_tab(tab, N);
   printf("\n");
   print_tab(rookies, N);
