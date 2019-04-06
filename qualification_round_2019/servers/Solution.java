@@ -7,97 +7,100 @@ public class Solution{
     public static void main(String[] args) {
 
         Scanner sc = new Scanner(System.in);
-        int t = sc.nextInt();
+        String line = sc.nextLine();
+        int t = Integer.parseInt(line.trim());
         int T = t;
         while (t-- > 0) {
+            //line = sc.nextLine();
             int N = sc.nextInt();
             int B = sc.nextInt();
             int bToFind = B;
             int F = sc.nextInt();
-            List lists[] = new List[5];
             sc.nextLine();
+            List lists[] = new List[5];
+            int maxLevel = 0;
             for (int i = 0; i < 5; i++) {
               String sinusoid = sinusoid(N, (int) Math.pow(2, i));
               System.out.println(sinusoid);
               String response = sc.nextLine();
-
-              if (i > 0)
-                response = fillPast(response, i, lists);
-
-              List<Integer> indices = findRelativeIndices(response, (int) Math.pow(2, i), sinusoid);
-              System.out.println("Found indices:");
+            List<Integer> indices = findRelativeIndices(response, i, sinusoid, lists);
+              /*System.out.println("Found indices:");
               for (Integer ind : indices) {
                 System.out.println(ind);
-              }
+              }*/
               lists[i] = indices;
               bToFind -= indices.size() * ((int) Math.pow(2, i));
+              maxLevel = i;
               if (bToFind == 0)
                 break;
             }
-            System.out.println("Case #" + (T - t) + ": " + rebuildIndices(lists));
+            System.out.println(rebuildIndices(lists, N, B, maxLevel + 1));
+            Integer resp = sc.nextInt();
+            if (resp == -1)
+              return;
         }
 
     }
 
-    private static String rebuildIndices(List[] lists) {
-      List<Integer> ids = new ArrayList<>();
-      for (int i = lists.length - 1; i >= 0; i--) {
-        if (lists[i] ==null)
-          continue;
-        List<Integer> relative = (List<Integer>) lists[i];
-        for (int j = 0; j < relative.size(); j++) {
-          ids.add(relative.get(j) + j * ((int) Math.pow(2, i)));
+    private static List<Integer> findRelativeIndices(String response, int index, String sinusoid, List[] lists) {
+      int span = (int) Math.pow(2, index);
+      StringBuilder control = new StringBuilder();
+      List<Integer> currentIndices = new ArrayList<Integer>();
+
+      for (int i = 0; i < response.length(); i++) {
+        //System.out.println("Iteration start: " + i + " Control: " + control.toString() + " Sinusoid: " + sinusoid);
+        List<Integer> lengths = findLengthsAtIndex(i, lists, index);
+        int sum = lengths.stream().mapToInt(integer -> integer.intValue()).sum();
+        //System.out.println("Iteration: " + i + " sum: " + sum);
+        control.append(sinusoid.substring(control.length(), control.length() + sum));
+        if (sinusoid.charAt(control.length()) == response.charAt(i)) {
+          control.append(response.charAt(i));
+        } else {
+          control.append(sinusoid.substring(control.length(), control.length() + span)).append(response.charAt(i));
+          currentIndices.add(i);
+        }
+        //System.out.println("Iteration end: " + i + " Control: " + control.toString() + " Sinusoid: " + sinusoid);
+      }
+
+      List<Integer> lengths = findLengthsAtIndex(response.length(), lists, index);
+      int sum = lengths.stream().mapToInt(integer -> integer.intValue()).sum();
+
+      control.append(sinusoid.substring(control.length(), control.length() + sum));
+      String s1 = control.substring(Math.max(control.length() - span, 0), control.length());
+      if (!s1.equals(sinusoid.substring(sinusoid.length() - s1.length(), sinusoid.length())))
+        currentIndices.add(response.length());
+
+      return currentIndices;
+    }
+
+    private static List<Integer> findLengthsAtIndex(int index, List[] lists, int span) {
+      List<Integer> lengths = new ArrayList<>();
+      for (int i = 0; i < span; i++) {
+        if (lists[i].contains(index)) {
+          lengths.add((int) Math.pow(2, i));
         }
       }
-      Collections.sort(ids);
+      return lengths;
+    }
+
+    private static String rebuildIndices(List[] lists, int N, int B, int maxLevel) {
+      StringBuilder sb = new StringBuilder();
+      List<Integer> ids = new ArrayList<>();
+      for (int i = 0; i <=N - B; i++) {
+        int broken = findLengthsAtIndex(i, lists, maxLevel).stream().mapToInt(integer -> integer.intValue()).sum();
+        while (broken-- > 0)
+          sb.append(0);
+        if(i != N - B)
+          sb.append(1);
+      }
+      for (int i = 0; i < sb.length(); i++) {
+        if (sb.charAt(i) == '0')
+          ids.add(i);
+      }
+
       return ids.stream().map(i -> String.valueOf(i)).collect(Collectors.joining(" "));
     }
 
-    private static String fillPast(String response, int index, List lists[]) {
-      for (int i =0; i < lists.length; i++) {
-        int
-        if (lists[i] == null)
-          break;
-        List<Integer> list = (List<Integer>) lists[i];
-        int ind = 0;
-        Integer index = list.get(ind);
-        StringBuilder temp = new StringBuilder();
-        for (int k = 0; k < response.length(); k++) {
-          if (k > index) {
-            temp.append(analyzePatternPhase(response, k, (int) Math.pow(2, i)));
-            index = ind == list.size() - 1 ? response.length() + 1 : list.get(++ind);
-          }
-          temp.append(respoonse.charAt(k));
-        }
-        response = temp.toString();
-      }
-      return response;
-    }
-
-    private static String analyzePatternPhase(String response, int index, int span) {
-      
-    }
-
-    private static List<Integer> findRelativeIndices(String response, int span, String sinusoid) {
-      System.out.println("Find: " + response + " " + span);
-      List<Integer> indices = new ArrayList<>();
-      boolean one = false;
-      int offset = 0;
-      for (int i = 0; i < response.length();) {
-        if ((i + offset)% span == 0)
-          one = !one;
-
-        if (response.charAt(i) != (one ? '1' : '0')) {
-          indices.add(i);
-          offset -= span;
-          continue;
-        }
-        i++;
-      }
-      if (response.charAt(response.length() - 1) != sinusoid.charAt(sinusoid.length() - 1))
-        indices.add(response.length());
-      return indices;
-    }
 
     private static String sinusoid(int length, int span) {
       StringBuilder sinusoid = new StringBuilder();
