@@ -1,4 +1,5 @@
 import java.util.*;
+import java.math.*;
 
 public class Solution{
 
@@ -12,21 +13,29 @@ public class Solution{
         while (t-- > 0) {
             long N = sc.nextLong();
             int L = sc.nextInt();
-            Long primes[] = new Long[L + 1];
-            long crypto = sc.nextLong();
-            long crypto_2 = sc.nextLong();
-            long gcd = gcd(crypto, crypto_2);
-            primes[0] = crypto/gcd;
-            primes[1] = gcd;
-            primes[2] = crypto_2/gcd;
-            for (int i = 3; i < L; i++) {
-              long cryptoLoop = sc.nextLong();
-              primes[i] = cryptoLoop/primes[i-1];
+            BigInteger primes[] = new BigInteger[L + 1];
+            BigInteger cryptos[] = new BigInteger[L];
+            int cryptomark = 0;
+            cryptos[0] = sc.nextBigInteger();
+            for (int i = 1; i < L; i++) {
+              cryptos[i] = sc.nextBigInteger();
+              if (!cryptos[i].equals(cryptos[i-1])) {
+                cryptomark = i;
+                primes[cryptomark] = cryptos[cryptomark].gcd(cryptos[cryptomark - 1]);
+                break;
+              }
             }
-            primes[L] = sc.nextLong()/primes[L -1];
-            Map<Long, Character> dictionary = constructDictionary(primes);
+            for (int i = cryptomark - 1; i >= 0; i--) {
+              primes[i] = cryptos[i].divide(primes[i+1]);
+            }
+            primes[cryptomark + 1] = cryptos[cryptomark].divide(primes[cryptomark]);
+            for (int i = cryptomark + 2; i < L + 1; i++) {
+              BigInteger cryptoLoop = sc.nextBigInteger();
+              primes[i] = cryptoLoop.divide(primes[i-1]);
+            }
+            Map<BigInteger, Character> dictionary = constructDictionary(primes);
             StringBuilder message = new StringBuilder();
-            for (Long prime : primes) {
+            for (BigInteger prime : primes) {
               message.append(dictionary.get(prime));
             }
 
@@ -35,9 +44,11 @@ public class Solution{
 
     }
 
-    private static Map<Long, Character> constructDictionary(Long[] primes) {
-      Map<Long, Character> dictionary = new HashMap<>();
-      Long[] distinct = new HashSet<Long>(Arrays.asList(primes)).toArray(new Long[26]);
+    private static Map<BigInteger, Character> constructDictionary(BigInteger[] primes) {
+      Map<BigInteger, Character> dictionary = new HashMap<>();
+      Set<BigInteger> set = new HashSet<>();
+      set.addAll(Arrays.asList(primes));
+      BigInteger[] distinct = set.toArray(new BigInteger[26]);
       Arrays.sort(distinct);
       for (int i = 0; i < 26; i++) {
         dictionary.put(distinct[i], ALPHABET.charAt(i));
@@ -45,12 +56,4 @@ public class Solution{
       return dictionary;
     }
 
-    private static long gcd(long a, long b) {
-      if (b > a)
-        return gcd(b, a);
-
-      if (b == 0)
-        return a;
-      return gcd(b, a%b);
-    }
 }
